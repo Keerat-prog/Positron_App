@@ -2416,7 +2416,6 @@ export default function App() {
           <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-5xl mx-auto w-full max-w-full min-w-0 overflow-x-hidden">
             {/* Header intro or simple instructions */}
             <div className="text-center md:mb-2 max-w-xl mx-auto px-2">
-              <span className={`text-xs font-calibri font-bold tracking-widest ${themeObj.accentText} uppercase`}>Divine Notebook</span>
               <h3 className={`text-2xl md:text-3xl font-calibri font-light ${textTitle} mt-0.5`}>Write the Sacred Pages</h3>
             </div>
 
