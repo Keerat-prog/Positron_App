@@ -26,7 +26,37 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
-// Robust fallback runner prioritizing active responsive Gemini models
+function isTransientGeminiError(err: any): boolean {
+  const status = err?.status ?? err?.code;
+  const msg = String(err?.message || "");
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    /503|429|overloaded|unavailable|resource_exhausted|timeout/i.test(msg)
+  );
+}
+
+async function runWithBackoff<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastErr: any = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastErr = err;
+      if (!isTransientGeminiError(err) || attempt === maxAttempts - 1) {
+        throw err;
+      }
+      const delayMs = 350 * Math.pow(2, attempt) + Math.floor(Math.random() * 150);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw lastErr;
+}
+
+// Robust fallback runner prioritizing active responsive Gemini models with exponential backoff
 async function callGeminiWithFallback(ai: GoogleGenAI, requestOptions: { contents: string; config?: any }) {
   const models = ["gemini-4-hydrogen", "gemini-3.1-flash-lite"];
   let lastErr = null;
@@ -39,16 +69,17 @@ async function callGeminiWithFallback(ai: GoogleGenAI, requestOptions: { content
         delete cfg.topK;
         delete cfg.candidateCount;
       }
-      const response = await ai.models.generateContent({
-        model,
-        contents: requestOptions.contents,
-        config: cfg,
-      });
+      const response = await runWithBackoff(() =>
+        ai.models.generateContent({
+          model,
+          contents: requestOptions.contents,
+          config: cfg,
+        })
+      );
       if (response && response.text) {
         return response;
       }
     } catch (err: any) {
-      console.warn(`[Gemini Fallback] Model ${model} returned error:`, err?.status || err?.message);
       lastErr = err;
     }
   }
@@ -272,24 +303,25 @@ How to speak:
 
     for (const model of models) {
       try {
-        const chat = ai.chats.create({
-          model,
-          history: cleanHistory,
-          config: {
-            systemInstruction,
-            ...(model === "gemini-4-hydrogen"
-              ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } }
-              : {}),
-          },
+        const response = await runWithBackoff(async () => {
+          const chat = ai.chats.create({
+            model,
+            history: cleanHistory,
+            config: {
+              systemInstruction,
+              ...(model === "gemini-4-hydrogen"
+                ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } }
+                : {}),
+            },
+          });
+          return chat.sendMessage({ message: message.trim() });
         });
 
-        const response = await chat.sendMessage({ message: message.trim() });
         if (response && response.text && response.text.trim()) {
           replyText = response.text.trim();
           break;
         }
       } catch (err: any) {
-        console.warn(`[Confession Chat] Model ${model} failed:`, err?.status || err?.message);
         lastErr = err;
       }
     }
@@ -628,8 +660,7 @@ app.post("/api/generate-music", async (req, res) => {
 
     // 1. Generate poetic title and serene contemplation via Gemini
     try {
-      const textAnalysis = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+      const textAnalysis = await callGeminiWithFallback(ai, {
         contents: `Create a serene 3-4 word poetic title and a one-sentence meditation focus for an ambient spiritual track with prompt: "${prompt}", style: "${selectedStyle}". Return strict JSON with keys: "title", "focus".`,
         config: {
           responseMimeType: "application/json",
@@ -641,14 +672,12 @@ app.post("/api/generate-music", async (req, res) => {
             },
             required: ["title", "focus"]
           },
-          temperature: 0.7,
         }
       });
       const parsed = JSON.parse(textAnalysis.text || "{}");
       if (parsed.title) trackTitle = parsed.title;
       if (parsed.focus) meditationFocus = parsed.focus;
-    } catch (e) {
-      console.warn("AI title generation fallback notice:", e);
+    } catch (_e) {
       const words = prompt.split(" ").slice(0, 4).join(" ");
       trackTitle = words.charAt(0).toUpperCase() + words.slice(1) + " Resonance";
     }
