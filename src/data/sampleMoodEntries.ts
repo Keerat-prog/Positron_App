@@ -1,0 +1,156 @@
+import { DiaryEntry } from "../types";
+
+export const getInitialSampleEntries = (): DiaryEntry[] => {
+  const now = Date.now();
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  return [
+    {
+      id: `entry-${now - 6 * DAY_MS}`,
+      date: new Date(now - 6 * DAY_MS).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "Felt weighed down by endless deadlines and noise today. Came to the sanctuary looking for a quiet breath to quiet my racing thoughts.",
+      allowAI: true,
+      mood: "Anxious",
+      aiAnalysis: {
+        mood: "Anxious",
+        empathicResponse: "When deadlines rush like fierce winds, the inner observer remains untouched and completely serene.",
+        sacredWisdomPhrase: "Surrendering anxiety into divine grounding.",
+        sacredQuoteText: "You have a right to perform your prescribed duty, but you are not entitled to the fruits of action.",
+        sacredQuoteSource: "Bhagavad Gita 2.47",
+        dailyAestheticAction: "Place both hands on your chest and take 4 slow breaths counting to 5.",
+      },
+    },
+    {
+      id: `entry-${now - 5 * DAY_MS}`,
+      date: new Date(now - 5 * DAY_MS).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "A softer morning today. Read verses by the window while the tea was steaming. Feeling grounded and reflective.",
+      allowAI: true,
+      mood: "Reflective",
+      aiAnalysis: {
+        mood: "Reflective",
+        empathicResponse: "Your morning quietness opens fertile ground for peace to take root in every moment today.",
+        sacredWisdomPhrase: "Quiet awareness illuminates wisdom.",
+        sacredQuoteText: "Be still, and know that I am with you always.",
+        sacredQuoteSource: "Holy Bible, Psalm 46:10",
+        dailyAestheticAction: "Sip water mindfully and notice each swallow with gratitude.",
+      },
+    },
+    {
+      id: `entry-${now - 4 * DAY_MS}`,
+      date: new Date(now - 4 * DAY_MS).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "Long tiring journey through work meetings. Tired physically, but feeling quiet gratitude that I made it through with patience.",
+      allowAI: true,
+      mood: "Tired",
+      aiAnalysis: {
+        mood: "Tired",
+        empathicResponse: "Rest is not inactivity; it is the sacred replenishment of the temple of your spirit.",
+        sacredWisdomPhrase: "Holy sanctuary of gentle rest.",
+        sacredQuoteText: "Deep within, in the pool of silence, find the cool ambrosial nectar of peace.",
+        sacredQuoteSource: "Guru Granth Sahib p. 94",
+        dailyAestheticAction: "Lower your chin to your chest and release all tension from neck and jaw.",
+      },
+    },
+    {
+      id: `entry-${now - 3 * DAY_MS}`,
+      date: new Date(now - 3 * DAY_MS).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "Went for a walk in the late afternoon. The sky was amber and honey-colored. Deep peace settled in my chest.",
+      allowAI: true,
+      mood: "Peaceful",
+      aiAnalysis: {
+        mood: "Peaceful",
+        empathicResponse: "The sky mirrors your own boundless nature. Cherish this serene calm as your natural home.",
+        sacredWisdomPhrase: "Tranquility is your fundamental essence.",
+        sacredQuoteText: "One who is satisfied with what comes by its own accord is free from duality and at peace.",
+        sacredQuoteSource: "Bhagavad Gita 4.22",
+        dailyAestheticAction: "Step outside or gaze at the clouds for 2 minutes without judging anything.",
+      },
+    },
+    {
+      id: `entry-${now - 2 * DAY_MS}`,
+      date: new Date(now - 2 * DAY_MS).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "A family member called and we reconciled an old disagreement. My heart feels so light and grateful.",
+      allowAI: true,
+      mood: "Grateful",
+      aiAnalysis: {
+        mood: "Grateful",
+        empathicResponse: "Forgiveness dissolves ancient barriers and lets divine light flood both hearts.",
+        sacredWisdomPhrase: "Love and forgiveness unite the seeker with grace.",
+        sacredQuoteText: "Blessed are the peacemakers, for they shall be called children of the divine.",
+        sacredQuoteSource: "Holy Bible, Matthew 5:9",
+        dailyAestheticAction: "Offer a silent blessing of peace to everyone you meet today.",
+      },
+    },
+    {
+      id: `entry-${now - 1 * DAY_MS}`,
+      date: new Date(now - 1 * DAY_MS).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "Woke up feeling a surge of fresh hope for upcoming projects. Ready to begin with courage and sincerity.",
+      allowAI: true,
+      mood: "Hopeful",
+      aiAnalysis: {
+        mood: "Hopeful",
+        empathicResponse: "Hope is faith holding hands with courage. Move forward with tranquil dedication.",
+        sacredWisdomPhrase: "Dawn always follows the stillness of night.",
+        sacredQuoteText: "With every hardship comes ease; indeed, with hardship comes ease.",
+        sacredQuoteSource: "Holy Quran 94:5-6",
+        dailyAestheticAction: "Smile gently at your reflection in the mirror and breathe deeply.",
+      },
+    },
+    {
+      id: `entry-${now}`,
+      date: new Date(now).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "Sitting in quiet joy and gratitude for this day. Everything feels purposeful and aligned.",
+      allowAI: true,
+      mood: "Joyful",
+      aiAnalysis: {
+        mood: "Joyful",
+        empathicResponse: "May this radiant joy expand and warm everyone who crosses your path today.",
+        sacredWisdomPhrase: "Abundant joy overflows as selfless service.",
+        sacredQuoteText: "The Lord has filled my heart with singing, and peace has made its sanctuary in my soul.",
+        sacredQuoteSource: "Guru Granth Sahib p. 320",
+        dailyAestheticAction: "Share a sincere word of encouragement with someone today.",
+      },
+    },
+  ];
+};

@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-calibri: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  :root {
+    --font-calibri: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  *, *::before, *::after {
+    font-family: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  html, body, #root {
+    font-family: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  button, input, select, textarea, optgroup, option {
+    font-family: inherit;
+  }
+}
+
+/* Override any explicit Tailwind font utility to strictly use Calibri throughout */
+.font-calibri, 
+.font-serif, 
+.font-mono, 
+.font-sans {
+  font-family: 'Calibri', 'Carlito', 'Candara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Warm, Tactile, Artful Design Language (Behance / Dribbble Showcase Polish) */
+.organic-card-shadow {
+  box-shadow: 0 16px 40px rgba(60, 42, 30, 0.08), 0 4px 14px rgba(60, 42, 30, 0.04);
+}
+
+.organic-card-shadow-hover:hover {
+  box-shadow: 0 24px 50px rgba(60, 42, 30, 0.12), 0 8px 20px rgba(60, 42, 30, 0.06);
+}
+
+.organic-glass {
+  background: rgba(255, 250, 243, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.70);
+}
+
+.dark .organic-glass {
+  background: rgba(25, 22, 26, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.organic-glass-card {
+  background: rgba(255, 253, 248, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(240, 228, 214, 0.65);
+}
+
+.dark .organic-glass-card {
+  background: rgba(26, 23, 29, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(60, 52, 65, 0.40);
+}
+
+/* Soft 3D Sculptural Button Accents */
+.btn-organic-coral {
+  background: linear-gradient(135deg, #F26B5B 0%, #E05847 100%);
+  box-shadow: 0 8px 20px rgba(242, 107, 91, 0.28), 0 2px 6px rgba(242, 107, 91, 0.18);
+}
+.btn-organic-coral:hover {
+  background: linear-gradient(135deg, #f57a6b 0%, #ea6353 100%);
+  box-shadow: 0 12px 26px rgba(242, 107, 91, 0.38), 0 4px 10px rgba(242, 107, 91, 0.22);
+}
+
+.btn-organic-forest {
+  background: linear-gradient(135deg, #244F46 0%, #17645F 100%);
+  box-shadow: 0 8px 20px rgba(23, 100, 95, 0.24);
+}
+.btn-organic-forest:hover {
+  background: linear-gradient(135deg, #2c5d53 0%, #1e736d 100%);
+  box-shadow: 0 12px 26px rgba(23, 100, 95, 0.34);
+}
+
+/* Soft organic pulse / float */
+@keyframes organic-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(0.5deg); }
+}
+
+.animate-organic-float {
+  animation: organic-float 6s ease-in-out infinite;
+}
+

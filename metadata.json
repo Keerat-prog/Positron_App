@@ -1,0 +1,6 @@
+{
+  "name": "Positron",
+  "description": "Positron: A comforting daily positivity application offering guidance from sacred texts like the Bhagavad Gita, Guru Granth Sahib, and Bible, alongside physical calming exercises and an AI-supported empathetic reflection diary.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
