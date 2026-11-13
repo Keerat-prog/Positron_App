@@ -120,21 +120,21 @@ const LANDSCAPE_BACKGROUNDS = [
     id: "organic-diorama-garden",
     name: "Tactile Garden Diorama",
     category: "3D Artworks",
-    url: "/src/assets/images/organic_diorama_forest_1791215677295.jpg",
+    url: organicForestImg,
     photographer: "Digital 3D Sculpture"
   },
   {
     id: "warm-butterfly-hills",
     name: "Terracotta Butterfly Haven",
     category: "3D Artworks",
-    url: "/src/assets/images/warm_butterfly_valley_1791215688932.jpg",
+    url: warmButterflyImg,
     photographer: "Tactile Clay Diorama"
   },
   {
     id: "tranquil-moss-haven",
     name: "Sage Moss & Dandelion Sanctuary",
     category: "3D Artworks",
-    url: "/src/assets/images/tranquil_moss_haven_1791215703275.jpg",
+    url: tranquilMossImg,
     photographer: "Miniature Sculptural World"
   },
   {
