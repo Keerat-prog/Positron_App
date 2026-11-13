@@ -26,6 +26,7 @@ import {
   Feather,
   Heart
 } from "lucide-react";
+import { apiFetchJson } from "../lib/api";
 import { 
   db, 
   collection, 
@@ -315,20 +316,11 @@ export default function MusicGenerator({ user, isDark, themeObj, onOpenAuth }: M
     }
 
     try {
-      const response = await fetch("/api/generate-music", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: promptToSubmit,
-          model: selectedModel,
-          style: selectedStyle,
-        }),
+      const data = await apiFetchJson("/api/generate-music", {
+        prompt: promptToSubmit,
+        model: selectedModel,
+        style: selectedStyle,
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Music composition request failed");
-      }
 
       if (!data.audioUrl) {
         throw new Error("No audible audio stream returned from synthesizer.");
@@ -435,16 +427,11 @@ export default function MusicGenerator({ user, isDark, themeObj, onOpenAuth }: M
     if (!track.id) return;
     setRegeneratingTrackId(track.id);
     try {
-      const response = await fetch("/api/generate-music", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: track.prompt || "Deep meditative 432Hz ambient soundscape",
-          model: track.modelUsed || "lyria-3-clip-preview",
-          style: track.style || "Meditative Solfeggio 432Hz",
-        }),
+      const data = await apiFetchJson("/api/generate-music", {
+        prompt: track.prompt || "Deep meditative 432Hz ambient soundscape",
+        model: track.modelUsed || "lyria-3-clip-preview",
+        style: track.style || "Meditative Solfeggio 432Hz",
       });
-      const data = await response.json();
       if (data.audioUrl) {
         const updatedTrack = { 
           ...track, 

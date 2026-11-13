@@ -1,5 +1,5 @@
 // Progressive Web App Service Worker for Positivity & Sacred Reflection Diary
-const CACHE_NAME = 'sacred-sanctuary-cache-v1';
+const CACHE_NAME = 'sacred-sanctuary-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -37,8 +37,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let non-GET or API calls pass through
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+  // Let non-GET or API/serverless calls pass through
+  if (
+    event.request.method !== 'GET' ||
+    event.request.url.includes('/api/') ||
+    event.request.url.includes('/.netlify/functions/')
+  ) {
     return;
   }
 

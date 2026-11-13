@@ -51,6 +51,7 @@ import {
   saveSupabaseJournalEntry, 
   deleteSupabaseJournalEntry 
 } from "./lib/supabase";
+import { apiFetchJson } from "./lib/api";
 import warmButterflyImg from "./assets/images/warm_butterfly_valley_1791215688932.jpg";
 import sakuraBlossomImg from "./assets/images/sakura_blossom_diorama_1794549505337.jpg";
 import organicForestImg from "./assets/images/organic_diorama_forest_1791215677295.jpg";
@@ -841,24 +842,11 @@ export default function App() {
     setPersonalizeError(null);
     setIsPersonalizing(true);
     try {
-      const res = await fetch("/api/personalize-vibe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          problem: personalProblem,
-          mood: personalMood,
-          situation: personalSituation,
-        }),
+      const parsedConfig = await apiFetchJson("/api/personalize-vibe", {
+        problem: personalProblem,
+        mood: personalMood,
+        situation: personalSituation,
       });
-
-      if (!res.ok) {
-        const errObj = await res.json().catch(() => ({}));
-        throw new Error(errObj.error || "Failed to communicate with our spiritual advisor.");
-      }
-
-      const parsedConfig = await res.json();
       setPersonalizedConfig(parsedConfig);
       localStorage.setItem("sacred_personalized_config", JSON.stringify(parsedConfig));
       triggerNotification("Your entire spiritual app has been tailored beautifully for today's condition!");
@@ -1124,23 +1112,13 @@ export default function App() {
     setIsTranslating(true);
 
     try {
-      const response = await fetch("/api/translate-explain", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          verseText: verse.text,
-          translation: verse.translation,
-          source: verse.source,
-          origin: verse.origin,
-          targetLanguage: targetLang,
-        }),
+      const data = await apiFetchJson("/api/translate-explain", {
+        verseText: verse.text,
+        translation: verse.translation,
+        source: verse.source,
+        origin: verse.origin,
+        targetLanguage: targetLang,
       });
-
-      if (!response.ok) {
-        throw new Error("API call failed");
-      }
-
-      const data = await response.json();
       setTranslatedVerse(data);
 
       if (autoSpeak) {
@@ -1205,7 +1183,8 @@ export default function App() {
       time: nowTime
     };
 
-    const nextMessages = [...chatMessages, userMsg];
+    const previousMessages = chatMessages;
+    const nextMessages = [...previousMessages, userMsg];
     setChatMessages(nextMessages);
     setCurrentEntryText("");
     try {
@@ -1216,24 +1195,14 @@ export default function App() {
     setDiaryError(null);
 
     try {
-      const res = await fetch("/api/confession-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: textToSend,
-          history: nextMessages.map(m => ({
-            role: m.sender === "user" ? "user" : "model",
-            content: m.text
-          }))
-        })
+      const data = await apiFetchJson<{ reply?: string }>("/api/confession-chat", {
+        message: textToSend,
+        history: nextMessages.map(m => ({
+          role: m.sender === "user" ? "user" : "model",
+          content: m.text
+        }))
       });
 
-      if (!res.ok) {
-        const errObj = await res.json().catch(() => ({}));
-        throw new Error(errObj.error || "Reflection guide connection paused.");
-      }
-
-      const data = await res.json();
       if (!data.reply || typeof data.reply !== "string" || !data.reply.trim()) {
         throw new Error("Received an empty response. Please try sending your message again.");
       }
@@ -1248,6 +1217,8 @@ export default function App() {
 
       setChatMessages([...nextMessages, compMsg]);
     } catch (err: any) {
+      setChatMessages(previousMessages);
+      setCurrentEntryText(prev => (prev.trim() ? prev : textToSend));
       setDiaryError(err?.message || "Couldn't reach the companion right now. Please try again in a moment.");
     } finally {
       setIsAgentReplying(false);
@@ -1302,21 +1273,10 @@ export default function App() {
       let aiResponseData = undefined;
 
       if (allowAI) {
-        // Fetch AI analysis and comforting response from backend express server
-        const res = await fetch("/api/diary-analyze", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: entryTextToSubmit }),
+        // Fetch AI analysis and comforting response from backend server / Netlify function
+        aiResponseData = await apiFetchJson("/api/diary-analyze", {
+          content: entryTextToSubmit,
         });
-
-        if (!res.ok) {
-          const errObj = await res.json().catch(() => ({}));
-          throw new Error(errObj.error || "The wisdom guide is currently contemplating deeply and could not answer.");
-        }
-
-        aiResponseData = await res.json();
       }
 
       const finalMood = selectedEntryMood !== "Auto" ? selectedEntryMood : (aiResponseData?.mood || "Reflective");
@@ -1607,24 +1567,11 @@ export default function App() {
                 setPersonalizeError(null);
                 setIsPersonalizing(true);
                 try {
-                  const res = await fetch("/api/personalize-vibe", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      problem: personalProblem,
-                      mood: personalMood,
-                      situation: personalSituation,
-                    }),
+                  const parsedConfig = await apiFetchJson("/api/personalize-vibe", {
+                    problem: personalProblem,
+                    mood: personalMood,
+                    situation: personalSituation,
                   });
-
-                  if (!res.ok) {
-                    const errObj = await res.json().catch(() => ({}));
-                    throw new Error(errObj.error || "Failed to communicate with our spiritual advisor.");
-                  }
-
-                  const parsedConfig = await res.json();
                   setPersonalizedConfig(parsedConfig);
                   localStorage.setItem("sacred_personalized_config", JSON.stringify(parsedConfig));
                   triggerNotification("Your entire spiritual app has been tailored beautifully for today's condition!");
