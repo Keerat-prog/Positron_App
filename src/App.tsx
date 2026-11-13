@@ -553,9 +553,8 @@ export default function App() {
     {
       id: "welcome-1",
       sender: "companion",
-      text: "Hello. I'm here with you—a real, private space to talk through whatever is on your mind. Tell me what you're dealing with, feeling, or thinking about today.",
+      text: "Hey — I'm here. What's on your mind right now?",
       time: "Open",
-      insight: "A listening ear and an honest heart are where clarity begins.",
       tag: "Sanctuary"
     }
   ]);
@@ -1235,26 +1234,21 @@ export default function App() {
       }
 
       const data = await res.json();
+      if (!data.reply || typeof data.reply !== "string" || !data.reply.trim()) {
+        throw new Error("Received an empty response. Please try sending your message again.");
+      }
+
       const compMsg: ChatMessage = {
         id: `comp-${Date.now()}`,
         sender: "companion",
-        text: data.reply || "I am reflecting deeply on your words. Take a gentle breath and share whatever else is on your mind.",
+        text: data.reply.trim(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        insight: data.sacredInsight,
-        tag: data.comfortTag || "Solace"
+        tag: "Chat"
       };
 
       setChatMessages([...nextMessages, compMsg]);
-    } catch (_err) {
-      const fallbackMsg: ChatMessage = {
-        id: `comp-${Date.now()}`,
-        sender: "companion",
-        text: `I hear what you shared about "${textToSend.slice(0, 80)}${textToSend.length > 80 ? '...' : ''}". Even when things feel tangled or heavy, take a steady breath. What feels like the hardest part of this for you right now?`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        insight: "Timeless Truth: 'Give yourself grace when navigating the unknown.'",
-        tag: "Inner Peace"
-      };
-      setChatMessages([...nextMessages, fallbackMsg]);
+    } catch (err: any) {
+      setDiaryError(err?.message || "Couldn't reach the companion right now. Please try again in a moment.");
     } finally {
       setIsAgentReplying(false);
     }
@@ -2572,17 +2566,16 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setChatMessages([
-                                    {
-                                      id: `welcome-${Date.now()}`,
-                                      sender: "companion",
-                                      text: "I'm right here with you. What is going on in your life right now that you'd like to talk through?",
-                                      time: "Now",
-                                      insight: "Take your time. Every honest word brings you closer to peace.",
-                                      tag: "Sanctuary"
-                                    }
-                                  ]);
-                                  setCurrentEntryText("");
+                                    setChatMessages([
+                                      {
+                                        id: `welcome-${Date.now()}`,
+                                        sender: "companion",
+                                        text: "Fresh page. What's going on today?",
+                                        time: "Now",
+                                        tag: "Sanctuary"
+                                      }
+                                    ]);
+                                    setCurrentEntryText("");
                                 }}
                                 className={`text-xs flex items-center gap-1 transition-colors px-2 py-0.5 rounded-lg font-calibri ${
                                   isDark ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" : "text-stone-600 hover:text-stone-950 hover:bg-stone-100"
@@ -2623,17 +2616,17 @@ export default function App() {
                                     className={`flex flex-col w-full max-w-full ${msg.sender === "user" ? "items-end" : "items-start"}`}
                                   >
                                     <div
-                                      className={`p-3 rounded-2xl text-xs md:text-sm leading-relaxed max-w-[95%] sm:max-w-[90%] shadow-sm break-words overflow-hidden ${
+                                      className={`p-3.5 rounded-2xl text-xs md:text-sm leading-relaxed max-w-[95%] sm:max-w-[88%] shadow-sm break-words overflow-hidden ${
                                         msg.sender === "user"
                                           ? isDark
                                             ? "bg-amber-600/25 text-zinc-100 border border-amber-500/40 rounded-br-sm font-medium"
                                             : "bg-amber-100/90 text-stone-950 border border-amber-300 rounded-br-sm font-medium"
                                           : isDark
-                                            ? "bg-zinc-950/90 text-zinc-100 border border-zinc-800 rounded-bl-sm font-normal"
-                                            : "bg-white text-stone-900 border border-stone-200/90 rounded-bl-sm shadow-sm font-normal"
+                                            ? "bg-zinc-950/90 text-zinc-100 border border-zinc-800/90 rounded-bl-sm font-normal"
+                                            : "bg-white text-stone-800 border border-stone-200/90 rounded-bl-sm shadow-sm font-normal"
                                       }`}
                                     >
-                                      <p className="whitespace-pre-wrap font-calibri break-words">{msg.text}</p>
+                                      <p className="whitespace-pre-wrap font-calibri break-words leading-relaxed">{msg.text}</p>
                                     </div>
                                   </motion.div>
                                 ))}
@@ -2648,16 +2641,15 @@ export default function App() {
                                     transition={{ duration: 0.25, ease: "easeOut" }}
                                     className="flex flex-col items-start animate-pulse w-full max-w-full"
                                   >
-                                    <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] font-bold text-amber-500 font-calibri">
-                                      <span>✨ Solace Companion</span>
-                                      <span>•</span>
-                                      <span>Reflecting on your words...</span>
-                                    </div>
-                                    <div className={`p-2.5 sm:p-3 rounded-2xl text-xs rounded-bl-sm flex items-center gap-2 max-w-[95%] break-words ${
-                                      isDark ? "bg-zinc-950/90 border border-zinc-800 text-zinc-200" : "bg-white border border-stone-300 text-stone-700 shadow-sm"
+                                    <div className={`px-3.5 py-2.5 rounded-2xl text-xs rounded-bl-sm flex items-center gap-2 max-w-[95%] break-words ${
+                                      isDark ? "bg-zinc-950/90 border border-zinc-800 text-zinc-300" : "bg-white border border-stone-200 text-stone-600 shadow-sm"
                                     }`}>
-                                      <Sparkles size={13} className="animate-spin text-amber-500 shrink-0" />
-                                      <span className="font-calibri italic font-medium break-words">Thinking through what you shared...</span>
+                                      <span className="inline-flex gap-1 items-center">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                                      </span>
+                                      <span className="font-calibri font-medium break-words">Typing...</span>
                                     </div>
                                   </motion.div>
                                 )}

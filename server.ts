@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type, Modality } from "@google/genai";
+import { GoogleGenAI, Type, Modality, ThinkingLevel } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -28,14 +28,21 @@ function getGeminiClient(): GoogleGenAI {
 
 // Robust fallback runner prioritizing active responsive Gemini models
 async function callGeminiWithFallback(ai: GoogleGenAI, requestOptions: { contents: string; config?: any }) {
-  const models = ["gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash"];
+  const models = ["gemini-4-hydrogen", "gemini-3.1-flash-lite"];
   let lastErr = null;
   for (const model of models) {
     try {
+      const cfg = requestOptions.config ? { ...requestOptions.config } : undefined;
+      if (cfg && model === "gemini-4-hydrogen") {
+        delete cfg.temperature;
+        delete cfg.topP;
+        delete cfg.topK;
+        delete cfg.candidateCount;
+      }
       const response = await ai.models.generateContent({
         model,
         contents: requestOptions.contents,
-        config: requestOptions.config,
+        config: cfg,
       });
       if (response && response.text) {
         return response;
@@ -221,7 +228,7 @@ Provide a structured JSON output with exact properties:
   }
 });
 
-// API: Simultaneous interactive dialogue for user confessions, doubts, and spiritual guidance
+// API: Simultaneous interactive dialogue for user confessions, doubts, and real conversation
 app.post("/api/confession-chat", async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -230,60 +237,68 @@ app.post("/api/confession-chat", async (req, res) => {
     }
 
     const ai = getGeminiClient();
-    
-    // Build context with history
-    const conversationHistory = Array.isArray(history) 
-      ? history.slice(-10).map((h: any) => `${h.role === "user" ? "User" : "Companion"}: ${h.content}`).join("\n\n")
-      : "";
 
-    const systemInstruction = `You are a real, emotionally intelligent, warm, grounded confidant and mentor in a personal reflection and diary application.
-Your job is to give REAL-LIFE, DIRECT, LIVE REPLIES to the texts and messages sent by the user.
+    // Build clean multi-turn Content history starting from the first user turn
+    const rawTurns = Array.isArray(history)
+      ? history
+          .filter((h: any) => h && typeof h.content === "string" && h.content.trim())
+          .map((h: any) => ({
+            role: h.role === "user" ? "user" : "model",
+            parts: [{ text: h.content.trim() }],
+          }))
+      : [];
 
-RULES FOR REPLIES:
-1. ALWAYS DIRECT & SPECIFIC: Directly address the exact situation, people, events, emotions, and questions the user mentioned. If they talk about an argument with a friend or brother, work pressure, feeling lonely, a breakup, money worries, illness, or regret, speak directly to those specific realities and details.
-2. NO GENERIC PLATITUDES: Never speak in canned, repetitive, or vague guru cliches. Do not sound like an automated corporate bot or generic greeting card.
-3. AUTHENTIC & GROUNDED: Talk like a thoughtful, empathetic real-life friend sitting right with them. Validate their genuine feelings, help them make sense of the situation, and offer clear, grounded perspective or a practical next step.
-4. RELEVANT WISDOM: If applicable, weave in a grounded timeless insight or perspective that genuinely fits their specific circumstance.
-5. NATURAL TONE: Keep your tone conversational, sincere, and human. Match their level of communication—if they ask a brief question or write a casual text, answer directly and conversationally without unnecessary verbosity.`;
+    // Exclude the latest user message if the client already appended it, and ensure history starts with a user turn
+    if (rawTurns.length > 0 && rawTurns[rawTurns.length - 1].role === "user" && rawTurns[rawTurns.length - 1].parts[0].text === message.trim()) {
+      rawTurns.pop();
+    }
+    const firstUserIdx = rawTurns.findIndex((t) => t.role === "user");
+    const cleanHistory = firstUserIdx >= 0 ? rawTurns.slice(firstUserIdx).slice(-14) : [];
 
-    const prompt = `${conversationHistory ? `Conversation history:\n${conversationHistory}\n\n` : ""}User's latest message:
-"${message}"
+    const systemInstruction = `You are a real, emotionally perceptive, honest confidant—like a trusted close friend talking with the user one-on-one in a private diary space.
 
-Write a real, live, thoughtful reply responding directly to what the user said above. Provide a structured JSON output with:
-- "reply": string (your direct, contextual, real-life human response addressing their exact words)
-- "sacredInsight": string (a concise, relevant timeless insight or practical wisdom anchor tailored to their specific situation)
-- "comfortTag": string (a short, specific 2-3 word topic tag, e.g. "Family Conflict", "Work Stress", "Self-Doubt", "Grief & Healing")`;
+How to speak:
+- Sound completely human, natural, and unscripted. Use normal everyday language, contractions (it's, you're, didn't, that's), and varied sentence rhythm.
+- React directly to the actual details, people, contradictions, or feelings in what they just said—never swap in generic advice.
+- Match their energy and length. If they send a quick casual line or question, give a crisp, genuine 1-3 sentence reply. If they open up with something heavy or complicated, slow down and really sit with the specifics of their situation.
+- Do NOT follow a formula (no "1. Validate -> 2. Reframe -> 3. Breathing tip -> 4. Question" checklist). Sometimes just naming what's hard or unfair about a situation, asking one real follow-up question, or giving a grounded, candid perspective is enough.
+- Strictly avoid therapist-bot and AI clichés: never say "I hear you completely", "I'm sorry you're carrying that heavy feeling", "Give yourself grace/permission", "Take a slow, steady breath", "The fact that you feel X shows you care about Y", "navigate this", or "It's completely valid to feel...".
+- Do not tack on unsolicited quotes, proverbs, or bulleted self-care checklists unless the user specifically asks for scripture, a quote, or practical steps.
+- Reply in plain conversational text (no markdown headers, no JSON, no robotic labels). Match whatever language the user writes in.`;
 
-    let replyData;
-    try {
-      const response = await callGeminiWithFallback(ai, {
-        contents: prompt,
-        config: {
-          systemInstruction,
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              reply: { type: Type.STRING },
-              sacredInsight: { type: Type.STRING },
-              comfortTag: { type: Type.STRING },
-            },
-            required: ["reply", "sacredInsight", "comfortTag"],
+    let replyText = "";
+    const models = ["gemini-4-hydrogen", "gemini-3.1-flash-lite"];
+    let lastErr: any = null;
+
+    for (const model of models) {
+      try {
+        const chat = ai.chats.create({
+          model,
+          history: cleanHistory,
+          config: {
+            systemInstruction,
+            ...(model === "gemini-4-hydrogen"
+              ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } }
+              : {}),
           },
-          temperature: 0.7,
-        },
-      });
-      replyData = JSON.parse(response.text || "{}");
-    } catch (_genErr: any) {
-      console.error("Confession Chat Model Error:", _genErr);
-      replyData = {
-        reply: `I hear you completely on what you shared about "${message.slice(0, 80)}${message.length > 80 ? "..." : ""}". When situations like this arise, give yourself permission not to have everything solved right away. Take a slow, steady breath. What feels like the hardest part of this for you right now?`,
-        sacredInsight: `Timeless Wisdom: "Peace begins when we grant ourselves patience and grace in the face of uncertainty."`,
-        comfortTag: `Compassionate Support`
-      };
+        });
+
+        const response = await chat.sendMessage({ message: message.trim() });
+        if (response && response.text && response.text.trim()) {
+          replyText = response.text.trim();
+          break;
+        }
+      } catch (err: any) {
+        console.warn(`[Confession Chat] Model ${model} failed:`, err?.status || err?.message);
+        lastErr = err;
+      }
     }
 
-    res.json(replyData);
+    if (!replyText) {
+      throw lastErr || new Error("Unable to generate a response right now.");
+    }
+
+    res.json({ reply: replyText });
   } catch (error: any) {
     console.error("Confession Chat API Error:", error);
     res.status(500).json({ error: error.message || "Failed to process reflection." });
